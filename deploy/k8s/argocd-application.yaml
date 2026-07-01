@@ -1,0 +1,46 @@
+# ============================================
+# ArgoCD Application：GitOps 声明式部署
+# 监听 Git 仓库的 Chart 变更，自动同步到 K8s
+# ============================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pawmatch
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: pawmatch
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/your-org/pawmatch.git
+    targetRevision: HEAD
+    path: deploy/helm
+    helm:
+      valueFiles:
+        - values.yaml
+      parameters:
+        - name: image.tag
+          value: $ARGOCD_APP_REVISION
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: pawmatch
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
+
+  revisionHistoryLimit: 10

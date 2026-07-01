@@ -1,0 +1,45 @@
+{{- /* Istio VirtualService：A/B 测试 Embedding 模型流量切分 */ -}}
+{{- if .Values.istio.enabled -}}
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ include "pawmatch.fullname" . }}
+  labels:
+    {{- include "pawmatch.labels" . | nindent 4 }}
+spec:
+  hosts:
+    - {{ include "pawmatch.fullname" . }}
+  http:
+    - match:
+        - headers:
+            x-embedding-experiment:
+              exact: "v2"
+      route:
+        - destination:
+            host: {{ include "pawmatch.fullname" . }}
+            subset: v2
+          weight: 100
+    - route:
+        - destination:
+            host: {{ include "pawmatch.fullname" . }}
+            subset: v1
+          weight: 80
+        - destination:
+            host: {{ include "pawmatch.fullname" . }}
+            subset: v2
+          weight: 20
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: {{ include "pawmatch.fullname" . }}
+spec:
+  host: {{ include "pawmatch.fullname" . }}
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2
+{{- end }}

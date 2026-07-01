@@ -1,0 +1,73 @@
+# ============================================
+# KEDA ScaledObject（独立部署模板）
+# 监听 RabbitMQ matching_queue 长度自动扩缩 matching-consumer Deployment
+# ============================================
+# 前置条件：
+#   1. K8s 集群已安装 KEDA（helm install keda kedacore/keda）
+#   2. RabbitMQ 开启 management plugin（用于 KEDA 查询队列长度）
+#   3. RBAC：default serviceaccount 有 get/list pods 权限
+
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: rabbitmq-auth
+spec:
+  secretTargetRef:
+    - parameter: host
+      name: pawmatch-rabbitmq-secret
+      key: host
+    - parameter: username
+      name: pawmatch-rabbitmq-secret
+      key: username
+    - parameter: password
+      name: pawmatch-rabbitmq-secret
+      key: password
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: pawmatch-matching-scaler
+  namespace: pawmatch
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: pawmatch  # 与 helm chart 一致；可改为单独的 matching-consumer Deployment
+  pollingInterval: 15       # 每 15s 检查一次队列长度
+  cooldownPeriod: 30        # 队列空后 30s 才缩
+  minReplicaCount: 1        # 至少 1 个 pod（不能 0，否则无人消费积压消息）
+  maxReplicaCount: 20       # 上限 20
+
+  # 高级策略
+  advanced:
+    horizontalPodAutoscalerConfig:
+      name: keda-hpa-pawmatch
+      behavior:
+        # 紧急扩容：1 分钟内快速扩容（应对突发流量）
+        scaleUp:
+          stabilizationWindowSeconds: 0
+          policies:
+            - type: Percent
+              value: 100
+              periodSeconds: 30
+        # 缓慢缩容：5 分钟才缩（避免抖动）
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Pods
+              value: 1
+              periodSeconds: 60
+
+  triggers:
+    - type: rabbitmq
+      name: matching-queue
+      authenticationRef:
+        name: rabbitmq-auth
+      metadata:
+        protocol: amqp
+        mode: QueueLength
+        queueName: matching_queue
+        # 队列长度阈值：平均每 pod 处理 50 条消息
+        value: "50"
+        activationValue: "5"   # 队列 ≥ 5 才激活扩容
+        # 高级：监控模式（可改为 activateMode: paused 用于突发缓冲）

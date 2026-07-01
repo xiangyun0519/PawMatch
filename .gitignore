@@ -1,0 +1,66 @@
+# Build
+target/
+*.jar
+*.war
+*.class
+build/
+out/
+dist/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Node
+node_modules/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+*.swp
+
+# 测试
+test-output/
+surefire-reports/
+*.log
+*.tmp
+*.bak
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 环境
+.env
+.env.local
+application-local.yml
+application-local.properties
+
+# Docker 体积
+.dockerignore
+
+# 日志
+logs/
+
+# 临时测试产物
+backend/smoke.log
+backend/docker-build.log
+
+# IDE 内部配置
+.trae/
+
+# 截图和原型
+yuanxingtu/
+*.jpg
+*.jpeg
+*.png
+*.pdf
+
+# 设计文档
+需求规格说明书.md
+需求规格说明书_简版.pdf
+需求规格说明书.pdf

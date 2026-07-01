@@ -1,0 +1,7 @@
+-- ============================================
+-- 流浪动物领养平台 - PostgreSQL 建表语句（已废弃）
+-- 此文件由 Flyway 接管（参见 db/migration/V1__init.sql）
+-- 保留此文件仅为向后兼容 docker-compose 自动 init 场景
+-- 实际生产由 Flyway 自动管理
+-- ============================================
+-- 见 backend/src/main/resources/db/migration/V1__init.sql

@@ -1,0 +1,101 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: pawmatch
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/pawmatch
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  # Flyway 数据库迁移
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    table: flyway_schema_history
+
+  # 禁用 Spring Boot 自动执行 schema.sql/data.sql，由 Flyway 统一管理
+  sql:
+    init:
+      mode: never
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ${REDIS_PASSWORD:REDACTED_REDIS_PASSWORD}
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+
+  ai:
+    openai:
+      api-key: REDACTED_DASHSCOPE_KEY
+      base-url: https://api.siliconflow.cn
+      chat:
+        options:
+          model: Pro/MiniMaxAI/MiniMax-M2.5
+      embedding:
+        options:
+          model: Qwen/Qwen3-Embedding-8B
+    dashscope:
+      api-key: ${DASHSCOPE_API_KEY:your-dashscope-api-key-here}
+      chat:
+        options:
+          model: deepseek-ai/DeepSeek-V3.2
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+jwt:
+  secret: your-jwt-secret-key-at-least-256-bits-long
+  expiration: 86400000
+
+# Embedding 配置（pgvector 0.7.x 索引上限 2000 维）
+embedding:
+  model: Qwen/Qwen3-Embedding-8B
+  dimension: 2000
+
+# 匹配权重（架构要求 6 维；向量相似度作为先验不占权重）
+matching:
+  weights:
+    personality_match: 0.30
+    size_preference: 0.25
+    experience_match: 0.20
+    activity_match: 0.15
+    health_status: 0.10
+  reason:
+    # 是否启用 LLM 生成匹配理由；false 时直接模板降级（零 LLM 成本）
+    llm-enabled: true
+
+# 知识库 ETL 配置
+knowledge:
+  chunk-size: 512
+  chunk-overlap: 50
+
+# 意图识别（LLM 优先 + 关键词 fallback）
+intent:
+  llm-enabled: true
+
+# CORS 白名单
+cors:
+  allowed-origins:
+    - http://localhost:5173
+    - http://localhost:5174
+    - http://localhost:3000

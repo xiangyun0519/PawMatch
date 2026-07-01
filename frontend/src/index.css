@@ -1,0 +1,251 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #FFF9F5 !important;
+  color: #4A4A4A;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+  background-color: #FFF9F5;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FFF9F5;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #FF8C42, #FFB347);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #FF6B35, #FF8C42);
+}
+
+::selection {
+  background: #FFE5CC;
+  color: #4A4A4A;
+}
+
+/* Ant Design 样式覆盖 */
+.ant-layout {
+  background: #FFF9F5 !important;
+}
+
+.ant-layout-content {
+  background: #FFF9F5 !important;
+}
+
+.ant-btn-primary {
+  background: linear-gradient(135deg, #FF8C42, #FF6B35) !important;
+  border: none !important;
+  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.3) !important;
+  border-radius: 50px !important;
+  font-weight: 600 !important;
+}
+
+.ant-btn-primary:hover {
+  background: linear-gradient(135deg, #FF6B35, #FF5722) !important;
+  box-shadow: 0 12px 32px rgba(255, 107, 53, 0.4) !important;
+}
+
+/* 响应式布局 - 大屏幕 (1440px+) */
+@media (min-width: 1440px) {
+  .container-xl {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+}
+
+/* 响应式布局 - 桌面 (1024px - 1439px) */
+@media (max-width: 1439px) {
+  .pet-grid-home {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+  
+  .pet-grid-list {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+/* 响应式布局 - 平板 (768px - 1023px) */
+@media (max-width: 1023px) {
+  .pet-grid-home {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .pet-grid-list {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .hero-title {
+    font-size: 48px !important;
+  }
+  
+  .page-container {
+    flex-direction: column !important;
+  }
+  
+  .sidebar {
+    width: 100% !important;
+  }
+  
+  .header {
+    padding: 0 40px !important;
+  }
+  
+  .nav {
+    gap: 32px !important;
+  }
+}
+
+/* 响应式布局 - 手机 (< 768px) */
+@media (max-width: 767px) {
+  .pet-grid-home {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .pet-grid-list {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .features-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .hero-title {
+    font-size: 36px !important;
+  }
+  
+  .hero {
+    padding: 60px 20px !important;
+  }
+  
+  .hero-cta {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  
+  .pet-showcase {
+    padding: 40px 20px !important;
+  }
+  
+  .features {
+    padding: 40px 20px !important;
+  }
+  
+  .header {
+    padding: 0 20px !important;
+  }
+  
+  .nav {
+    display: none !important;
+  }
+  
+  .mobile-menu-btn {
+    display: block !important;
+  }
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.4s ease-out;
+}
+
+/* 状态标签 */
+.status-available {
+  background: #E8F5E9;
+  color: #4CAF50;
+}
+
+.status-pending {
+  background: #FFF3E0;
+  color: #FF9800;
+}
+
+.status-adopted {
+  background: #E3F2FD;
+  color: #2196F3;
+}
+
+.status-rejected {
+  background: #FFEBEE;
+  color: #F44336;
+}
+
+/* 匹配度进度条 */
+.match-bar {
+  background: #F5F5F5;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.match-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FF8C42 0%, #FFB347 100%);
+  border-radius: 5px;
+}
+
+/* 移动端菜单按钮 */
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #FF8C42;
+}

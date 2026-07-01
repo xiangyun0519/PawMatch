@@ -1,0 +1,119 @@
+# ============================================
+# PawMatch Helm values.yaml
+# 默认配置（生产环境可覆盖）
+# ============================================
+
+replicaCount: 2
+
+image:
+  repository: pawmatch-backend
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 2000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: pawmatch.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+# KEDA 弹性扩缩（按 RabbitMQ matching_queue 长度）
+keda:
+  enabled: false
+  queueName: matching_queue
+  activationThreshold: "5"
+  maxRetries: "3"
+  # 队列长度阈值，超过则扩容
+  triggers:
+    - type: rabbitmq
+      metadata:
+        queueName: matching_queue
+        mode: QueueLength
+        value: "100"
+
+# 环境变量（敏感信息请用 Secret 注入）
+env:
+  TZ: Asia/Shanghai
+  SPRING_PROFILES_ACTIVE: prod
+  # Java JVM 参数
+  JAVA_OPTS: "-Xms256m -Xmx512m -XX:+UseG1GC"
+
+# 业务配置
+config:
+  embedding:
+    model: Qwen/Qwen3-Embedding-8B
+    dimension: 2000
+  matching:
+    weights:
+      personality_match: 0.30
+      size_preference: 0.25
+      experience_match: 0.20
+      activity_match: 0.15
+      health_status: 0.10
+
+# 数据库 / Redis / RabbitMQ 连接（生产应通过 Secret 注入）
+datasource:
+  url: jdbc:postgresql://pawmatch-postgres:5432/pawmatch
+  username: postgres
+  password: postgres
+
+redis:
+  host: pawmatch-redis
+  port: 6379
+  password: ""
+
+rabbitmq:
+  host: pawmatch-rabbitmq
+  port: 5672
+  username: guest
+  password: guest
+
+# AI 模型 API（强烈建议用 Secret）
+ai:
+  openai:
+    apiKey: "REPLACE_ME"
+    baseUrl: "https://api.siliconflow.cn"
+  dashscope:
+    apiKey: "REPLACE_ME"

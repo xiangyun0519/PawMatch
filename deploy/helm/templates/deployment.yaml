@@ -1,0 +1,109 @@
+{{- /* PawMatch 后端 Deployment */ -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pawmatch.fullname" . }}
+  labels:
+    {{- include "pawmatch.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "pawmatch.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "pawmatch.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "pawmatch.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: TZ
+              value: {{ .Values.env.TZ | quote }}
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.env.SPRING_PROFILES_ACTIVE | quote }}
+            - name: JAVA_OPTS
+              value: {{ .Values.env.JAVA_OPTS | quote }}
+            - name: SPRING_DATASOURCE_URL
+              value: {{ .Values.datasource.url | quote }}
+            - name: SPRING_DATASOURCE_USERNAME
+              value: {{ .Values.datasource.username | quote }}
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pawmatch.fullname" . }}-secret
+                  key: db-password
+                  optional: false
+            - name: SPRING_DATA_REDIS_HOST
+              value: {{ .Values.redis.host | quote }}
+            - name: SPRING_DATA_REDIS_PORT
+              value: {{ .Values.redis.port | toString | quote }}
+            - name: SPRING_DATA_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pawmatch.fullname" . }}-secret
+                  key: redis-password
+                  optional: true
+            - name: SPRING_RABBITMQ_HOST
+              value: {{ .Values.rabbitmq.host | quote }}
+            - name: SPRING_RABBITMQ_PORT
+              value: {{ .Values.rabbitmq.port | toString | quote }}
+            - name: SPRING_RABBITMQ_USERNAME
+              value: {{ .Values.rabbitmq.username | quote }}
+            - name: SPRING_RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pawmatch.fullname" . }}-secret
+                  key: rabbitmq-password
+                  optional: false
+            - name: SPRING_AI_OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pawmatch.fullname" . }}-secret
+                  key: openai-api-key
+                  optional: true
+            - name: SPRING_AI_DASHSCOPE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pawmatch.fullname" . }}-secret
+                  key: dashscope-api-key
+                  optional: true
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

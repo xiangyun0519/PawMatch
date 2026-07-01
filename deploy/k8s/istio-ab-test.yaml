@@ -1,0 +1,76 @@
+# ============================================
+# Istio A/B 测试：Embedding 模型流量切分
+#
+# 业务场景：
+#   - v1：当前线上 Qwen3-Embedding-8B（baseline）
+#   - v2：候选 BGE-M3 / text-embedding-3-large（新模型评估）
+#
+# 切分规则：
+#   1. Header x-embedding-experiment: v2 → 100% 走 v2
+#   2. 否则 → 80% v1 + 20% v2
+#
+# 配合 Grafana 对比两路：
+#   - 平均匹配分数分布
+#   - top-5 命中率
+#   - P99 延迟
+# ============================================
+
+# DestinationRule：定义 subset（按 Pod label 区分）
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: pawmatch
+  namespace: pawmatch
+spec:
+  host: pawmatch
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+        embedding-model: qwen3-8b
+    - name: v2
+      labels:
+        version: v2
+        embedding-model: bge-m3
+---
+# VirtualService：流量切分
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: pawmatch
+  namespace: pawmatch
+spec:
+  hosts:
+    - pawmatch
+  http:
+    # 显式标记：所有带 x-embedding-experiment: v2 的请求走 v2
+    - match:
+        - headers:
+            x-embedding-experiment:
+              exact: v2
+      route:
+        - destination:
+            host: pawmatch
+            subset: v2
+          weight: 100
+    # 默认流量：80% v1 / 20% v2（灰度发布）
+    - route:
+        - destination:
+            host: pawmatch
+            subset: v1
+          weight: 80
+        - destination:
+            host: pawmatch
+            subset: v2
+          weight: 20
+---
+# 配套：把 v2 Pod 打 label（示例，在 Deployment template 里设置）
+# spec:
+#   template:
+#     metadata:
+#       labels:
+#         version: v2
+#         embedding-model: bge-m3

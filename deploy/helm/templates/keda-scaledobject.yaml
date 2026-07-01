@@ -1,0 +1,23 @@
+{{- /* KEDA ScaledObject（AI Worker 按队列长度弹性扩缩）*/ -}}
+{{- if .Values.keda.enabled -}}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "pawmatch.fullname" . }}
+  labels:
+    {{- include "pawmatch.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    name: {{ include "pawmatch.fullname" . }}
+  pollingInterval: 15
+  cooldownPeriod: 30
+  minReplicaCount: {{ .Values.autoscaling.minReplicas }}
+  maxReplicaCount: {{ .Values.autoscaling.maxReplicas }}
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 60
+  triggers:
+    {{- toYaml .Values.keda.triggers | nindent 4 }}
+{{- end }}

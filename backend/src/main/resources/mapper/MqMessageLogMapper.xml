@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.petadopt.mapper.MqMessageLogMapper">
+
+    <insert id="insertRaw">
+        INSERT INTO mq_message_log (message_id, business_type, payload, status, retry_count, created_at, business_id)
+        VALUES (#{messageId}, #{businessType}, #{payloadJson}::jsonb, #{status}, #{retryCount}, NOW(), #{businessId})
+    </insert>
+
+    <update id="updateResultSnapshot">
+        UPDATE mq_message_log
+        <set>
+            status = #{status},
+            error_message = #{errorMessage},
+            result_snapshot = #{resultSnapshotJson}::jsonb,
+            processed_at = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="incrementRetry">
+        UPDATE mq_message_log
+        <set>
+            retry_count = retry_count + 1,
+            status = #{status},
+            error_message = #{errorMessage},
+            processed_at = CASE WHEN #{status} = 'FAILED' THEN NOW() ELSE processed_at END
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>
