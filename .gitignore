@@ -34,6 +34,14 @@ surefire-reports/
 .DS_Store
 Thumbs.db
 
+# Python virtual environments / vendored deps (本地使用，不入库)
+tools/extlib/
+tools/seed/extlib/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
 # 环境
 .env
 .env.local
